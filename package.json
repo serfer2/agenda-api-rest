@@ -1,20 +1,21 @@
 {
-  "name": "agenda",
-  "version": "1.0.0",
-  "description": "API REST para la app de Agenda",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "serfer2",
-  "license": "ISC",
-  "dependencies": {
-    "express": "^4.16.3",
-    "mongodb": "^3.1.6",
-    "mongoose": "^5.2.17"
-  },
-  "devDependencies": {
-    "expect": "^23.6.0",
-    "mocha": "^5.2.0"
-  }
+    "name": "agenda",
+    "version": "1.0.0",
+    "description": "API REST para la app de Agenda",
+    "main": "server/server.js",
+    "scripts": {
+        "test": "mocha **/*.test.js"
+    },
+    "author": "serfer2",
+    "license": "ISC",
+    "dependencies": {
+        "express": "^4.16.3",
+        "mongodb": "^3.1.6",
+        "mongoose": "^5.2.17"
+    },
+    "devDependencies": {
+        "expect": "^23.6.0",
+        "mocha": "^5.2.0",
+        "supertest": "^3.3.0"
+    }
 }
