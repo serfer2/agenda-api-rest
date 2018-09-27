@@ -1,5 +1,6 @@
 var express = require('express');
 var bodyParser = require('body-parser');
+var ObjectId = require('mongodb').ObjectId;
 
 var { User, userSchema } = require('./models/user');
 var { Note, noteSchema } = require('./models/note');
@@ -33,6 +34,22 @@ app.get('/notes', (req, res) => {
 }, (err) => {
     res.status(400).send(e);
 });
+
+app.get('/notes/:id', (req, res) => {
+    if (!ObjectId.isValid(req.params.id)) {
+        return res.status(404).send();
+    }
+    Note.findById(req.params.id).then((note) => {
+        if (!note) {
+            return res.status(404).send();
+        }
+        res.status(200).send(note);
+    }).catch(e => {
+        console.log('Exception en Note.findById():', e);
+        res.status(400).send('');
+    });
+});
+
 
 app.listen(3000, () => {
     console.log('Escuchando en el puerto 3000');
