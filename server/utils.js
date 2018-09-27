@@ -14,4 +14,9 @@ var nextDay = () => {
     return d;
 };
 
+var date2JSON = (date) => {
+    return JSON.stringify(date).replace(/["]/g, '');
+};
+
 module.exports.nextDay = nextDay;
+module.exports.date2JSON = date2JSON;
