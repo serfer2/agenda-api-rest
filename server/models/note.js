@@ -19,8 +19,7 @@ var noteSchema = mongoose.Schema({
         deault: false
     },
     readedAt: {
-        // timestamp
-        type: Number,
+        type: Date,
         default: null
     }
 });
