@@ -6,6 +6,7 @@ var { User, userSchema } = require('./models/user');
 var { Note, noteSchema } = require('./models/note');
 
 var app = express();
+var port = process.env.port || 3000;
 
 // Usamos middleware para que todo lo que llegue en Body
 // de las request sea convertido a objeto JSON al vuelo
@@ -51,8 +52,8 @@ app.get('/notes/:id', (req, res) => {
 });
 
 
-app.listen(3000, () => {
-    console.log('Escuchando en el puerto 3000');
+app.listen(port, () => {
+    console.log(`Escuchando en el puerto ${port}`);
 });
 
 module.exports = { app }; // para testing
