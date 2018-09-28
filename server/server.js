@@ -68,7 +68,7 @@ app.delete('/notes/:id', (req, res) => {
         if (!note) {
             return res.status(404).send();
         }
-        console.log('Agenda API - Delete: ', req.params.id);
+        // console.log('Agenda API - Delete: ', req.params.id);
         res.status(200).send(note);
     }).catch(e => {
         console.log('Exception en Note.findByIdAndRemove():', e);
@@ -108,7 +108,7 @@ app.patch('/notes/:id', (req, res) => {
         if (!note) {
             return res.status(404).send();
         }
-        console.log('Agenda API - PATCH: ', req.params.id);
+        // console.log('Agenda API - PATCH: ', req.params.id);
         res.status(200).send(note);
     }).catch(e => {
         console.log('Exception en Note.findOneAndUpdate():', e);

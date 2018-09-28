@@ -86,13 +86,13 @@ describe('GET Note by ID', () => {
                     if (err) {
                         return done(err);
                     }
-                    // console.log('Note creada para la ocasión: ', res.body._id);
+                    // console.log('Note creada para test GET by ID: ', res.body._id);
                     expect(res.body._id).toBe('' + doc._id);
                     expect(res.body.text).toBe(text);
                     expect(res.body.date).toBe(date2JSON(date));
 
                     // Eliminar registro recién creado
-                    Note.deleteOne({ _id: res.body._id })
+                    Note.findOneAndDelete({ _id: res.body._id })
                         .then((doc) => {
                             done();
                         }, (err) => {
@@ -113,11 +113,11 @@ describe('DELETE Note by ID', () => {
         // Crear Note para la ocasión
         var date = new Date();
         date.setDate(date.getDate() + 3);
-        var text = 'Nueva nota para test de get by ID';
+        var text = 'Nueva nota para test de DELETE by ID';
         var note = new Note({ text: text, date: date });
         note.save().then((doc) => {
 
-            console.log(`Agenda API TEST - Created for deleting: ${doc._id}`);
+            // console.log(`Agenda API TEST - Created for deleting: ${doc._id}`);
 
             // Test del API
             request(app)
@@ -127,7 +127,7 @@ describe('DELETE Note by ID', () => {
                     if (err) {
                         return done(err);
                     }
-                    // console.log('Note creada para la ocasión: ', res.body._id);
+                    // console.log('Note creada para test DELETE: ', res.body._id);
                     expect(res.body._id).toBe('' + doc._id);
                     expect(res.body.text).toBe(text);
                     expect(res.body.date).toBe(date2JSON(date));
@@ -135,7 +135,56 @@ describe('DELETE Note by ID', () => {
                 });
         }, (err) => {
             console.log('Error salvando new Note');
-            done(err)
+            done(err);
+        }).catch(e => done(e));
+    });
+});
+
+describe('PATCH Note by ID', () => {
+    it('Should modify one Note by ID, by setting it as readed and date = date + 1 day. And return Note', () => {
+
+        // Crear Note para la ocasión
+        var date = new Date();
+        date.setDate(date.getDate() + 3);
+        var date2 = new Date();
+        date2.setDate(date2.getDate() + 4);
+        var text = 'Nueva nota para test de PATCH by ID';
+        var text2 = 'Texto modificado';
+        var note = new Note({ text: text, date: date });
+        note.save().then((doc) => {
+
+            // console.log(`Agenda API TEST - Created for Patch test: ${doc._id}`);
+
+            // Test del API
+            request(app)
+                .patch(`/notes/${doc._id}`)
+                .send({ date: date2, text: text2, readed: true })
+                .expect(200)
+                .end((err, res) => {
+                    if (err) {
+                        return done(err);
+                    }
+                    expect(res.body._id).toBe('' + doc._id);
+                    expect(res.body.text).toBe(text2);
+                    expect(res.body.date).toBe(date2JSON(date2));
+                    expect(res.body.readed).toBe(true);
+                    expect(res.body.readedAt).toBeTruthy();
+
+                    // Eliminar registro recién creado
+                    Note.findOneAndDelete({ _id: res.body._id })
+                        .then((doc) => {
+                            //
+                        }, (err) => {
+                            console.log('Error en request: ', err);
+                            throw new Error(err);
+                        })
+                        .catch((e) => {
+                            throw new Error(e);
+                        });
+                });
+        }, (err) => {
+            console.log('Error salvando new Note');
+            done(err);
         }).catch(e => done(e));
     });
 });
