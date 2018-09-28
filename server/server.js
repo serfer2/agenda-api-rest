@@ -51,6 +51,23 @@ app.get('/notes/:id', (req, res) => {
     });
 });
 
+app.delete('/notes/:id', (req, res) => {
+    if (!ObjectId.isValid(req.params.id)) {
+        return res.status(404).send();
+    }
+    // findByIdAndRemove is deprecated
+    Note.findOneAndDelete({ _id: req.params.id }).then((note) => {
+        if (!note) {
+            return res.status(404).send();
+        }
+        console.log('Agenda API - Delete: ', req.params.id);
+        res.status(200).send(note);
+    }).catch(e => {
+        console.log('Exception en Note.findByIdAndRemove():', e);
+        res.status(400).send('');
+    });
+});
+
 
 app.listen(port, () => {
     console.log(`Escuchando en el puerto ${port}`);
