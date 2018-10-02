@@ -15,6 +15,9 @@ var port = process.env.port || 3000;
 app.use(bodyParser.json());
 
 
+// --- NOTES ---
+
+
 app.post('/notes', (req, res) => {
     // console.log('Server request: ', JSON.stringify(req.body));
     if (!_.has(req.body, 'readed')) {
@@ -113,6 +116,21 @@ app.patch('/notes/:id', (req, res) => {
     }).catch(e => {
         console.log('Exception en Note.findOneAndUpdate():', e);
         res.status(400).send('');
+    });
+});
+
+
+// --- USERS ---
+
+
+app.post('/users', (req, res) => {
+
+    var data = _.pick(req.body, ['name', 'email', 'password']);
+    var user = new User(data);
+    user.save().then((doc) => {
+        res.status(201).send(doc);
+    }).catch((e) => {
+        res.status(400).send(e);
     });
 });
 
