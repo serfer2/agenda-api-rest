@@ -127,11 +127,16 @@ app.post('/users', (req, res) => {
 
     var data = _.pick(req.body, ['name', 'email', 'password']);
     var user = new User(data);
+
     user.save().then((doc) => {
-        res.status(201).send(doc);
+        return user.generateAuthToken();
+    }).then((token) => {
+        // Promise de generateAuthToken()
+        res.status(200).header('x-auth', token).send(user); // toJSON() implicit call
     }).catch((e) => {
         res.status(400).send(e);
     });
+
 });
 
 
