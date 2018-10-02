@@ -5,6 +5,7 @@ var _ = require('lodash');
 
 var { User, userSchema } = require('./models/user');
 var { Note, noteSchema } = require('./models/note');
+var { authenticate, hasUserPermission } = require('./middleware/authenticate');
 
 var app = express();
 var port = process.env.port || 3000;
@@ -137,6 +138,36 @@ app.post('/users', (req, res) => {
         res.status(400).send(e);
     });
 
+});
+
+
+app.get('/users', [authenticate, hasUserPermission], (req, res) => {
+    // console.log('req.user:', req.user);
+    if (!req.user.isAdmin) {
+        return res.status(403).send(); // Auth ok, but forbiden
+    }
+    User.find().then((docs) => {
+        res.send(docs);
+    });
+}, (err) => {
+    res.status(400).send(e);
+});
+
+
+app.get('/users/:id', [authenticate, hasUserPermission], (req, res) => {
+    if (!ObjectId.isValid(req.params.id)) {
+        return res.status(404).send();
+    }
+
+    User.findById(req.params.id).then((doc) => {
+        if (!doc) {
+            return res.status(404).send();
+        }
+        res.status(200).send(doc);
+    }).catch(e => {
+        console.log('Exception en User.findById():', e);
+        res.status(400).send('');
+    });
 });
 
 
