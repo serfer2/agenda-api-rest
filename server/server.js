@@ -1,7 +1,8 @@
-var express = require('express');
-var bodyParser = require('body-parser');
-var ObjectId = require('mongodb').ObjectId;
-var _ = require('lodash');
+const express = require('express');
+const bodyParser = require('body-parser');
+const ObjectId = require('mongodb').ObjectId;
+const _ = require('lodash');
+const bcrypt = require('bcryptjs');
 
 var { User, userSchema } = require('./models/user');
 var { Note, noteSchema } = require('./models/note');
@@ -167,6 +168,20 @@ app.get('/users/:id', [authenticate, hasUserPermission], (req, res) => {
     }).catch(e => {
         console.log('Exception en User.findById():', e);
         res.status(400).send('');
+    });
+});
+
+
+app.post('/users/login', (req, res) => {
+
+    User.findByLogin(req.body.email, req.body.password).then((user) => {
+        return user.generateAuthToken().then((token) => {
+            console.log('token: ', token);
+            res.status(200).header('x-auth', token).send(user);
+        });
+    }).catch((e) => {
+        console.log('/users/login  ERROR: ', e);
+        res.status(401).send();
     });
 });
 
