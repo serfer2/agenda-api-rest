@@ -70,6 +70,16 @@ UserSchema.methods.generateAuthToken = function() {
     });
 };
 
+UserSchema.methods.deleteToken = function(token) {
+    return this.update({
+        $pull: {
+            tokens: {
+                token: token
+            }
+        }
+    });
+};
+
 // -- Model static methods
 UserSchema.statics.findByToken = function(token) {
     var User = this;
@@ -102,7 +112,7 @@ UserSchema.statics.findByLogin = function(email, password) {
         return new Promise((resolve, reject) => {
             bcrypt.compare(password, user.password, (err, res) => {
                 if (res) {
-                    console.log('ENCONTRADO !!! ->', user);
+                    // console.log('ENCONTRADO !!! ->', user);
                     resolve(user);
                 }
                 reject();

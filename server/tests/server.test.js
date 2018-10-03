@@ -102,7 +102,7 @@ describe('GET Note by ID', () => {
                 });
         }, (err) => {
             console.log('Error salvando new Note');
-            done(err)
+            done(err);
         }).catch(e => done(e));
     });
 });

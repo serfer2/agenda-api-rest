@@ -176,12 +176,22 @@ app.post('/users/login', (req, res) => {
 
     User.findByLogin(req.body.email, req.body.password).then((user) => {
         return user.generateAuthToken().then((token) => {
-            console.log('token: ', token);
+            // console.log('token: ', token);
             res.status(200).header('x-auth', token).send(user);
         });
     }).catch((e) => {
         console.log('/users/login  ERROR: ', e);
         res.status(401).send();
+    });
+});
+
+
+app.delete('/users/me/token', authenticate, (req, res) => {
+    // LOGOUT -> ELimina el token con el que está logueado
+    req.user.deleteToken(req.token).then(() => {
+        res.status(204).send();
+    }).catch((e) => {
+        res.status(400).send();
     });
 });
 
