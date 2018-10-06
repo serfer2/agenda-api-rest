@@ -89,7 +89,7 @@ UserSchema.statics.findByToken = function(token) {
         decoded = jwt.verify(token, JWT_KEY);
         // console.log('decoded: ', decoded);
     } catch (e) {
-        return Promise.reject();
+        return Promise.reject(e);
     }
 
     return User.findOne({
@@ -120,7 +120,7 @@ UserSchema.statics.findByLogin = function(email, password) {
         });
 
     });
-}
+};
 
 UserSchema.pre('save', function(next) {
     if (this.isModified('password')) {
@@ -137,4 +137,4 @@ UserSchema.pre('save', function(next) {
 
 var User = mongoose.model('User', UserSchema);
 
-module.exports = { User, UserSchema };
+module.exports = { User, UserSchema, JWT_KEY };

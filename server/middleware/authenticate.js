@@ -2,10 +2,10 @@ var { User } = require('../models/user');
 
 var authenticate = (req, res, next) => {
     var token = req.header('x-auth');
-    // console.log('token=', token);
+    // console.log('---token=', token);
 
     User.findByToken(token).then((doc) => {
-        // console.log('doc en authenticate:', doc);
+        // console.log('---doc en authenticate:', doc);
         if (!doc) {
             return Promise.reject();
         }
@@ -13,6 +13,7 @@ var authenticate = (req, res, next) => {
         req.token = token;
         next();
     }).catch((e) => {
+        // console.log('---authenticate error:', e);
         res.status(401).send();
     });
 };

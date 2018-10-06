@@ -20,12 +20,13 @@ app.use(bodyParser.json());
 // --- NOTES ---
 
 
-app.post('/notes', (req, res) => {
+app.post('/notes', authenticate, (req, res) => {
     // console.log('Server request: ', JSON.stringify(req.body));
     if (!_.has(req.body, 'readed')) {
         req.body.readed = false;
     }
     var nota = new Note(req.body);
+    nota._creator = req.user._id;
     nota.save().then(
         (doc) => {
             // console.log('201 ok: ', JSON.stringify(doc));
@@ -39,8 +40,10 @@ app.post('/notes', (req, res) => {
 });
 
 
-app.get('/notes', (req, res) => {
-    Note.find().then((notes) => {
+app.get('/notes', authenticate, (req, res) => {
+    Note.find({
+        _creator: req.user._id
+    }).then((notes) => {
         res.send(notes);
     });
 }, (err) => {
@@ -52,7 +55,10 @@ app.get('/notes/:id', (req, res) => {
     if (!ObjectId.isValid(req.params.id)) {
         return res.status(404).send();
     }
-    Note.findById(req.params.id).then((note) => {
+    Note.findOne({
+        _id: req.params.id,
+        _creator: req.user._id
+    }).then((note) => {
         if (!note) {
             return res.status(404).send();
         }
@@ -69,7 +75,10 @@ app.delete('/notes/:id', (req, res) => {
         return res.status(404).send();
     }
     // findByIdAndRemove is deprecated
-    Note.findOneAndDelete({ _id: req.params.id }).then((note) => {
+    Note.findOneAndDelete({
+        _id: req.params.id,
+        _creator: req.user._id
+    }).then((note) => {
         if (!note) {
             return res.status(404).send();
         }
@@ -109,7 +118,10 @@ app.patch('/notes/:id', (req, res) => {
 
     // findByIdAndUpdate is deprecated
     // La opción 'new' devuelve el objeto despues de actualizarlo
-    Note.findOneAndUpdate({ _id: req.params.id }, { $set: data }, { new: true }).then((note) => {
+    Note.findOneAndUpdate({
+        _id: req.params.id,
+        _creator: req.user._id
+    }, { $set: data }, { new: true }).then((note) => {
         if (!note) {
             return res.status(404).send();
         }
@@ -142,7 +154,7 @@ app.post('/users', (req, res) => {
 });
 
 
-app.get('/users', [authenticate, hasUserPermission], (req, res) => {
+app.get('/users', authenticate, (req, res) => {
     // console.log('req.user:', req.user);
     if (!req.user.isAdmin) {
         return res.status(403).send(); // Auth ok, but forbiden
