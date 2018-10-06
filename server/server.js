@@ -1,10 +1,12 @@
-var express = require('express');
-var bodyParser = require('body-parser');
-var ObjectId = require('mongodb').ObjectId;
-var _ = require('lodash');
+const express = require('express');
+const bodyParser = require('body-parser');
+const ObjectId = require('mongodb').ObjectId;
+const _ = require('lodash');
+const bcrypt = require('bcryptjs');
 
 var { User, userSchema } = require('./models/user');
 var { Note, noteSchema } = require('./models/note');
+var { authenticate, hasUserPermission } = require('./middleware/authenticate');
 
 var app = express();
 var port = process.env.port || 3000;
@@ -18,12 +20,13 @@ app.use(bodyParser.json());
 // --- NOTES ---
 
 
-app.post('/notes', (req, res) => {
+app.post('/notes', authenticate, (req, res) => {
     // console.log('Server request: ', JSON.stringify(req.body));
     if (!_.has(req.body, 'readed')) {
         req.body.readed = false;
     }
     var nota = new Note(req.body);
+    nota._creator = req.user._id;
     nota.save().then(
         (doc) => {
             // console.log('201 ok: ', JSON.stringify(doc));
@@ -37,8 +40,10 @@ app.post('/notes', (req, res) => {
 });
 
 
-app.get('/notes', (req, res) => {
-    Note.find().then((notes) => {
+app.get('/notes', authenticate, (req, res) => {
+    Note.find({
+        _creator: req.user._id
+    }).then((notes) => {
         res.send(notes);
     });
 }, (err) => {
@@ -50,7 +55,10 @@ app.get('/notes/:id', (req, res) => {
     if (!ObjectId.isValid(req.params.id)) {
         return res.status(404).send();
     }
-    Note.findById(req.params.id).then((note) => {
+    Note.findOne({
+        _id: req.params.id,
+        _creator: req.user._id
+    }).then((note) => {
         if (!note) {
             return res.status(404).send();
         }
@@ -67,7 +75,10 @@ app.delete('/notes/:id', (req, res) => {
         return res.status(404).send();
     }
     // findByIdAndRemove is deprecated
-    Note.findOneAndDelete({ _id: req.params.id }).then((note) => {
+    Note.findOneAndDelete({
+        _id: req.params.id,
+        _creator: req.user._id
+    }).then((note) => {
         if (!note) {
             return res.status(404).send();
         }
@@ -107,7 +118,10 @@ app.patch('/notes/:id', (req, res) => {
 
     // findByIdAndUpdate is deprecated
     // La opción 'new' devuelve el objeto despues de actualizarlo
-    Note.findOneAndUpdate({ _id: req.params.id }, { $set: data }, { new: true }).then((note) => {
+    Note.findOneAndUpdate({
+        _id: req.params.id,
+        _creator: req.user._id
+    }, { $set: data }, { new: true }).then((note) => {
         if (!note) {
             return res.status(404).send();
         }
@@ -127,10 +141,69 @@ app.post('/users', (req, res) => {
 
     var data = _.pick(req.body, ['name', 'email', 'password']);
     var user = new User(data);
+
     user.save().then((doc) => {
-        res.status(201).send(doc);
+        return user.generateAuthToken();
+    }).then((token) => {
+        // Promise de generateAuthToken()
+        res.status(200).header('x-auth', token).send(user); // toJSON() implicit call
     }).catch((e) => {
         res.status(400).send(e);
+    });
+
+});
+
+
+app.get('/users', authenticate, (req, res) => {
+    // console.log('req.user:', req.user);
+    if (!req.user.isAdmin) {
+        return res.status(403).send(); // Auth ok, but forbiden
+    }
+    User.find().then((docs) => {
+        res.send(docs);
+    });
+}, (err) => {
+    res.status(400).send(e);
+});
+
+
+app.get('/users/:id', [authenticate, hasUserPermission], (req, res) => {
+    if (!ObjectId.isValid(req.params.id)) {
+        return res.status(404).send();
+    }
+
+    User.findById(req.params.id).then((doc) => {
+        if (!doc) {
+            return res.status(404).send();
+        }
+        res.status(200).send(doc);
+    }).catch(e => {
+        console.log('Exception en User.findById():', e);
+        res.status(400).send('');
+    });
+});
+
+
+app.post('/users/login', (req, res) => {
+
+    User.findByLogin(req.body.email, req.body.password).then((user) => {
+        return user.generateAuthToken().then((token) => {
+            // console.log('token: ', token);
+            res.status(200).header('x-auth', token).send(user);
+        });
+    }).catch((e) => {
+        console.log('/users/login  ERROR: ', e);
+        res.status(401).send();
+    });
+});
+
+
+app.delete('/users/me/token', authenticate, (req, res) => {
+    // LOGOUT -> ELimina el token con el que está logueado
+    req.user.deleteToken(req.token).then(() => {
+        res.status(204).send();
+    }).catch((e) => {
+        res.status(400).send();
     });
 });
 

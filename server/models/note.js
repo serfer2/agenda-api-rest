@@ -21,6 +21,10 @@ var noteSchema = mongoose.Schema({
     readedAt: {
         type: Date,
         default: null
+    },
+    _creator: {
+        required: true,
+        type: mongoose.Schema.Types.ObjectId
     }
 });
 
